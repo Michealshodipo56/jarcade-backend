@@ -15,10 +15,7 @@ Production Go API for user authentication, backed by **Supabase PostgreSQL**.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run `supabase/migrations/001_users.sql`.
-3. Copy from **Project Settings → API**:
-   - `SUPABASE_URL`
-   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server only)
-4. (Recommended) Copy the **pooler** connection string → `DATABASE_URL`.
+3. Copy **Transaction pooler** connection string → `DATABASE_URL` (see Render note below).
 
 ### 2. Local API
 
@@ -71,11 +68,17 @@ Plain passwords are never stored.
 1. Push this repo to GitHub and connect on [Render](https://render.com).
 2. Use `render.yaml` or create a **Web Service** with runtime **Go**.
 3. Set environment variables:
+   - `DATABASE_URL` — **Transaction pooler** URI (port **6543**), **not** `db.*.supabase.co:5432`
    - `JWT_SECRET` — long random string (≥ 32 chars)
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
    - `CORS_ORIGIN` — comma-separated frontend origins
-   - `DATABASE_URL` (optional, recommended)
+
+**Important:** Render cannot connect to Supabase's direct database host (`db.xxxx.supabase.co:5432`).  
+In Supabase → **Settings → Database → Connection string**, choose **URI** and **Transaction pooler**:
+
+```text
+postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+```
+
 4. Deploy and point the frontend `config.js` at your service URL.
 
 ## Environment

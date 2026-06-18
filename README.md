@@ -1,67 +1,82 @@
 # JARCADE Backend API
 
-Express + SQLite API for user authentication and favourites.
+Production Go API for user authentication, backed by **Supabase PostgreSQL**.
+
+## Stack
+
+- **Go** + [chi](https://github.com/go-chi/chi) router
+- **Supabase PostgreSQL** (`users` table)
+- **bcrypt** password hashing
+- **JWT** session tokens (HS256)
 
 ## Setup
 
+### 1. Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor** and run `supabase/migrations/001_users.sql`.
+3. Copy from **Project Settings → API**:
+   - `SUPABASE_URL`
+   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server only)
+4. (Recommended) Copy the **pooler** connection string → `DATABASE_URL`.
+
+### 2. Local API
+
 ```bash
 cd jarcade-backend
-npm install
-cp .env.example .env   # if .env does not exist — set JWT_SECRET
-npm run dev
+cp .env.example .env   # fill in secrets
+go run ./cmd/server
 ```
 
-API runs at **http://localhost:3001**
+API runs at **http://localhost:8080**
 
-## Frontend
+### 3. Frontend
 
-Serve the `jarcade/` folder with any static server (e.g. VS Code Live Server on port 5500).
+Serve the `jarcade/` folder (e.g. Live Server on port 5500).  
+The client auto-connects to `http://localhost:8080/api` on localhost.
 
-The client auto-connects to `http://localhost:3001/api` when opened from localhost.
+After deploying, set in `jarcade/config.js`:
 
-Override with:
-
-```html
-<script>window.JARCADE_API_URL = 'https://your-api.com/api';</script>
+```js
+window.JARCADE_API_URL = 'https://YOUR-SERVICE.onrender.com/api';
 ```
+
+Set `CORS_ORIGIN` on Render to your frontend URL(s).
 
 ## Endpoints
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/health` | No | Health check |
-| POST | `/api/auth/register` | No | Create account |
-| POST | `/api/auth/login` | No | Sign in |
+| POST | `/api/auth/signup` | No | Create account |
+| POST | `/api/auth/login` | No | Sign in (rate limited) |
 | GET | `/api/auth/me` | Bearer | Current user |
 | POST | `/api/auth/logout` | No | Logout (client clears JWT) |
-| GET | `/api/favourites` | Bearer | List favourites |
-| POST | `/api/favourites` | Bearer | Add/update favourite |
-| DELETE | `/api/favourites/:name` | Bearer | Remove favourite |
 
 ## Database
 
-SQLite file at `./data/jarcade.db` (created automatically).
+`users` table (UUID primary key):
 
-**Tables:**
-- `users` — id, username, email, password_hash, created_at
-- `favourites` — user_id, game_name, game_img, play_onclick
+```sql
+id            uuid
+email         text unique
+password_hash text
+created_at    timestamptz
+```
+
+Plain passwords are never stored.
 
 ## Deploy on Render
 
-1. Push this repo to GitHub and connect it on [Render](https://render.com).
-2. Create a **Web Service** from the repo (or use `render.yaml` Blueprint).
-3. **Node version:** use **22.x** (required for `better-sqlite3`). Set `NODE_VERSION=22.22.0` in Render if the build picks Node 26.
-4. Set environment variables:
-   - `JWT_SECRET` — long random string (Render can auto-generate)
-   - `CORS_ORIGIN` — your frontend URL(s), comma-separated  
-     e.g. `https://michealshodipo56.github.io,http://localhost:5500`
-4. **Persistent disk (recommended):** attach a disk at `/var/data` and set  
-   `DATABASE_PATH=/var/data/jarcade.db`  
-   Without a disk, SQLite data resets on redeploy.
-5. After deploy, copy your service URL and set in the frontend `config.js`:
-   ```js
-   window.JARCADE_API_URL = 'https://YOUR-SERVICE.onrender.com/api';
-   ```
+1. Push this repo to GitHub and connect on [Render](https://render.com).
+2. Use `render.yaml` or create a **Web Service** with runtime **Go**.
+3. Set environment variables:
+   - `JWT_SECRET` — long random string (≥ 32 chars)
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `CORS_ORIGIN` — comma-separated frontend origins
+   - `DATABASE_URL` (optional, recommended)
+4. Deploy and point the frontend `config.js` at your service URL.
 
 ## Environment
 

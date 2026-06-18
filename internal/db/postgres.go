@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Michealshodipo56/jarcade-backend/internal/models"
@@ -22,9 +23,22 @@ func newPostgresStore(databaseURL string) (*postgresStore, error) {
 	}
 	if err := pool.Ping(context.Background()); err != nil {
 		pool.Close()
-		return nil, err
+		return nil, formatConnectError(err)
 	}
 	return &postgresStore{pool: pool}, nil
+}
+
+func formatConnectError(err error) error {
+	msg := err.Error()
+	if strings.Contains(msg, "password authentication failed") {
+		return fmt.Errorf(`database password rejected — check DATABASE_URL on Render:
+  1. Use your Supabase *database* password (Settings → Database), NOT the anon or service_role API keys
+  2. If you forgot it, reset it under Settings → Database → Database password
+  3. URL-encode special characters in the password (@ → %%40, # → %%23, ! → %%21, etc.)
+  4. Re-copy the Transaction pooler URI (port 6543) after resetting
+original error: %w`, err)
+	}
+	return err
 }
 
 func (s *postgresStore) Close() {

@@ -81,6 +81,27 @@ postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.co
 
 4. Deploy and point the frontend `config.js` at your service URL.
 
+### Render: `password authentication failed`
+
+The pooler host is correct — this error means the **password in `DATABASE_URL` is wrong**.
+
+1. Supabase → **Project Settings → Database**
+2. Click **Reset database password** (or use the one you saved at project creation)
+3. Copy a fresh **Transaction pooler** URI (port **6543**)
+4. Paste the new password into the URI — **not** your `anon` or `service_role` API keys
+5. If the password contains `@`, `#`, `!`, `%`, etc., URL-encode them:
+   - `@` → `%40`
+   - `#` → `%23`
+   - `!` → `%21`
+   - `%` → `%25`
+6. Update `DATABASE_URL` on Render → **Save** → **Redeploy**
+
+Example:
+
+```text
+postgresql://postgres.azcprgisbnudnajkbqvs:MyP%40ssw0rd@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
+```
+
 ## Environment
 
 See `.env.example` for all variables.

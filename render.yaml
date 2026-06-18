@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: jarcade-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REMEMBER_EXPIRES_IN
+        value: 30d
+      - key: DATABASE_PATH
+        value: /var/data/jarcade.db
+      - key: CORS_ORIGIN
+        sync: false

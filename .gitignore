@@ -5,4 +5,5 @@ data/
 *.db-journal
 .DS_Store
 /server
+/app
 bin/

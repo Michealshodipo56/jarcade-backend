@@ -33,7 +33,7 @@ func Load() (Config, error) {
 
 	hasREST := cfg.SupabaseURL != "" && cfg.SupabaseServiceRoleKey != ""
 	if cfg.DatabaseURL == "" && !hasREST {
-		return cfg, fmt.Errorf("set DATABASE_URL or both SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
+		return cfg, fmt.Errorf("DATABASE_URL is required (get it from Supabase → Settings → Database → Connection string)")
 	}
 
 	cors := envOrDefault("CORS_ORIGIN", "http://localhost:5500,http://127.0.0.1:5500")

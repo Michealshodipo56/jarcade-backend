@@ -3,20 +3,15 @@ services:
     name: jarcade-api
     runtime: go
     plan: free
-    buildCommand: go build -o server ./cmd/server
-    startCommand: ./server
+    buildCommand: go build -tags netgo -ldflags '-s -w' -o app .
+    startCommand: ./app
     healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: "8080"
       - key: JWT_SECRET
         generateValue: true
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
+      - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGIN
         sync: false
-      # Optional but recommended for production:
-      # - key: DATABASE_URL
-      #   sync: false

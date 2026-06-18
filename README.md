@@ -50,7 +50,8 @@ SQLite file at `./data/jarcade.db` (created automatically).
 
 1. Push this repo to GitHub and connect it on [Render](https://render.com).
 2. Create a **Web Service** from the repo (or use `render.yaml` Blueprint).
-3. Set environment variables:
+3. **Node version:** use **22.x** (required for `better-sqlite3`). Set `NODE_VERSION=22.22.0` in Render if the build picks Node 26.
+4. Set environment variables:
    - `JWT_SECRET` — long random string (Render can auto-generate)
    - `CORS_ORIGIN` — your frontend URL(s), comma-separated  
      e.g. `https://michealshodipo56.github.io,http://localhost:5500`

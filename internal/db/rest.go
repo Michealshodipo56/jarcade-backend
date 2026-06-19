@@ -31,11 +31,38 @@ func newRESTStore(supabaseURL, serviceRoleKey string) (*restStore, error) {
 	if supabaseURL == "" || serviceRoleKey == "" {
 		return nil, fmt.Errorf("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for REST mode")
 	}
-	return &restStore{
+	s := &restStore{
 		baseURL: strings.TrimRight(supabaseURL, "/") + "/rest/v1",
 		key:     serviceRoleKey,
 		client:  &http.Client{Timeout: 15 * time.Second},
-	}, nil
+	}
+	if err := s.ping(); err != nil {
+		return nil, fmt.Errorf("supabase REST API unreachable: %w", err)
+	}
+	return s, nil
+}
+
+func (s *restStore) ping() error {
+	req, err := http.NewRequest(http.MethodGet, s.baseURL+"/users?select=id&limit=0", nil)
+	if err != nil {
+		return err
+	}
+	req.Header = s.headers()
+
+	res, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("users table not found — run supabase/migrations/001_users.sql in the SQL editor")
+	}
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("status %d: %s", res.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return nil
 }
 
 func (s *restStore) Close() {}

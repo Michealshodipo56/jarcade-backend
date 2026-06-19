@@ -3,6 +3,9 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
+	"strings"
 
 	"github.com/Michealshodipo56/jarcade-backend/internal/config"
 	"github.com/Michealshodipo56/jarcade-backend/internal/models"
@@ -21,8 +24,31 @@ type Store interface {
 }
 
 func New(cfg config.Config) (Store, error) {
+	hasREST := cfg.SupabaseURL != "" && cfg.SupabaseServiceRoleKey != ""
+
 	if cfg.DatabaseURL != "" {
-		return newPostgresStore(cfg.DatabaseURL)
+		store, err := newPostgresStore(cfg.DatabaseURL)
+		if err == nil {
+			log.Println("database: connected via Postgres (DATABASE_URL)")
+			return store, nil
+		}
+		if hasREST && isRecoverableDBError(err) {
+			log.Printf("database: DATABASE_URL failed (%v), falling back to Supabase REST API", err)
+			return newRESTStore(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey)
+		}
+		return nil, err
 	}
-	return newRESTStore(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey)
+
+	if hasREST {
+		log.Println("database: using Supabase REST API")
+		return newRESTStore(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey)
+	}
+
+	return nil, fmt.Errorf("set DATABASE_URL or both SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
+}
+
+func isRecoverableDBError(err error) bool {
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "password authentication failed") ||
+		strings.Contains(msg, "database password rejected")
 }

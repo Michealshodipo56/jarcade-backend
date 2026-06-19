@@ -43,6 +43,7 @@ func Run() {
 	r.Use(middleware.SecurityHeaders)
 	r.Use(middleware.CORS(cfg))
 
+	r.Get("/", handlers.Health)
 	r.Get("/api/health", handlers.Health)
 
 	r.Route("/api/auth", func(r chi.Router) {

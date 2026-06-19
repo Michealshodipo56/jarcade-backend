@@ -11,7 +11,10 @@ create table if not exists public.users (
 
 create index if not exists idx_users_email_lower on public.users (lower(email));
 
--- PostgREST (Supabase REST) access for service role only.
 alter table public.users enable row level security;
 
--- No public policies: the Go API uses service role / direct Postgres only.
+-- Required for Supabase REST API (service_role key used by the Go backend)
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on table public.users to postgres, service_role;
+
+-- No public RLS policies: only the backend (service_role / direct Postgres) may access rows.

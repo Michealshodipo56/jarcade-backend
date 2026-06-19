@@ -32,7 +32,7 @@ func Run() {
 
 	tokens := auth.NewTokenService(cfg.JWTSecret)
 	authSvc := auth.NewService(store, tokens)
-	authHandler := handlers.NewAuthHandler(authSvc)
+	authHandler := handlers.NewAuthHandler(authSvc, cfg.FrontendURL, cfg.ExposeResetLink, cfg.GoogleClientID)
 	loginLimiter := middleware.NewLoginRateLimiter(10, 15*time.Minute)
 
 	r := chi.NewRouter()
@@ -50,6 +50,9 @@ func Run() {
 		r.Post("/signup", authHandler.Signup)
 		r.With(loginLimiter.Middleware).Post("/login", authHandler.Login)
 		r.Post("/logout", authHandler.Logout)
+		r.Post("/forgot-password", authHandler.ForgotPassword)
+		r.Post("/reset-password", authHandler.ResetPassword)
+		r.Post("/google", authHandler.GoogleLogin)
 		r.With(middleware.Auth(tokens)).Get("/me", authHandler.Me)
 	})
 

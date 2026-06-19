@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Michealshodipo56/jarcade-backend/internal/config"
 	"github.com/Michealshodipo56/jarcade-backend/internal/models"
@@ -20,6 +21,9 @@ type Store interface {
 	CreateUser(ctx context.Context, email, passwordHash string) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	GetUserByID(ctx context.Context, id string) (models.User, error)
+	UpdateUserPassword(ctx context.Context, userID, passwordHash string) error
+	CreatePasswordResetToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error
+	ConsumePasswordResetToken(ctx context.Context, tokenHash string) (string, error)
 	Close()
 }
 

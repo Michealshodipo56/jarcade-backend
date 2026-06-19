@@ -12,6 +12,9 @@ type Config struct {
 	SupabaseURL            string
 	SupabaseServiceRoleKey string
 	DatabaseURL            string
+	FrontendURL            string
+	ExposeResetLink        bool
+	GoogleClientID         string
 	CORSOrigins            []string
 }
 
@@ -22,6 +25,9 @@ func Load() (Config, error) {
 		SupabaseURL:            strings.TrimRight(strings.TrimSpace(os.Getenv("SUPABASE_URL")), "/"),
 		SupabaseServiceRoleKey: strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_ROLE_KEY")),
 		DatabaseURL:            strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		FrontendURL:            strings.TrimRight(strings.TrimSpace(os.Getenv("FRONTEND_URL")), "/"),
+		ExposeResetLink:        strings.EqualFold(strings.TrimSpace(os.Getenv("EXPOSE_PASSWORD_RESET_LINK")), "true"),
+		GoogleClientID:         strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID")),
 	}
 
 	if cfg.JWTSecret == "" {

@@ -24,6 +24,10 @@ type Store interface {
 	UpdateUserPassword(ctx context.Context, userID, passwordHash string) error
 	CreatePasswordResetToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error
 	ConsumePasswordResetToken(ctx context.Context, tokenHash string) (string, error)
+	CreateUploadedGame(ctx context.Context, game models.UploadedGame) (models.UploadedGame, error)
+	ListUploadedGames(ctx context.Context, limit int) ([]models.UploadedGame, error)
+	ListUploadedGamesByUser(ctx context.Context, userID string) ([]models.UploadedGame, error)
+	DeleteUploadedGame(ctx context.Context, id, userID string) error
 	Close()
 }
 

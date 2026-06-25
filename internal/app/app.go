@@ -33,6 +33,7 @@ func Run() {
 	tokens := auth.NewTokenService(cfg.JWTSecret)
 	authSvc := auth.NewService(store, tokens)
 	authHandler := handlers.NewAuthHandler(authSvc, cfg.FrontendURL, cfg.ExposeResetLink, cfg.GoogleClientID)
+	uploadHandler := handlers.NewUploadHandler(store)
 	loginLimiter := middleware.NewLoginRateLimiter(10, 15*time.Minute)
 
 	r := chi.NewRouter()
@@ -54,6 +55,13 @@ func Run() {
 		r.Post("/reset-password", authHandler.ResetPassword)
 		r.Post("/google", authHandler.GoogleLogin)
 		r.With(middleware.Auth(tokens)).Get("/me", authHandler.Me)
+	})
+
+	r.Route("/api/uploads", func(r chi.Router) {
+		r.Get("/", uploadHandler.List)
+		r.With(middleware.Auth(tokens)).Get("/mine", uploadHandler.Mine)
+		r.With(middleware.Auth(tokens)).Post("/", uploadHandler.Create)
+		r.With(middleware.Auth(tokens)).Delete("/{id}", uploadHandler.Delete)
 	})
 
 	srv := &http.Server{
